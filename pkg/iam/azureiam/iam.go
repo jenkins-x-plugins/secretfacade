@@ -43,6 +43,7 @@ func NewEnvironmentCredentials() (Credentials, error) {
 		return &environmentCredentials{
 			tenantID:           settings.Values[auth.TenantID],
 			subscriptionID:     settings.Values[auth.SubscriptionID],
+			clientID:           settings.Values[auth.ClientID],
 			useManagedIdentity: true,
 		}, nil
 	}
@@ -154,12 +155,9 @@ func GetKeyvaultAuthorizer(creds Credentials) (autorest.Authorizer, error) {
 		a = autorest.NewBearerAuthorizer(token)
 
 	case OAuthGrantTypeManagedIdentity:
-		MIEndpoint, err := adal.GetMSIVMEndpoint()
-		if err != nil {
-			return nil, err
-		}
-
-		token, err := adal.NewServicePrincipalTokenFromMSI(MIEndpoint, vaultEndpoint)
+		token, err := adal.NewServicePrincipalTokenFromManagedIdentity(vaultEndpoint, &adal.ManagedIdentityOptions{
+			ClientID: creds.ClientID(),
+		})
 		if err != nil {
 			return nil, err
 		}

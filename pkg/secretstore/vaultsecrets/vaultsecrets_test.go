@@ -83,7 +83,7 @@ func TestNewVaultSecretManager(t *testing.T) {
 	}
 
 	// Start a server to mimic kubernetes cluster
-	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
 		// Send response to be tested
 		// If you decode the test json, then the value of kubernetes.io/serviceaccount/service-account.uid is 424d91ce-20e3-48a2-b1e5-394e6a0c1813
 		_, _ = rw.Write([]byte(`{"status": {"authenticated": true, "user":{"uid":"424d91ce-20e3-48a2-b1e5-394e6a0c1813","username": "system:serviceaccount:secret-infra:default"}}}`))
