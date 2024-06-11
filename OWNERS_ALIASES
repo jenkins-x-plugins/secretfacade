@@ -1,15 +1,3 @@
-aliases:
-- chrismellard
-- rawlingsj
-- jstrachan
-- rajdavies
-best-approvers:
-- chrismellard
-- rawlingsj
-- jstrachan
-- rajdavies
-best-reviewers:
-- chrismellard
-- rawlingsj
-- jstrachan
-- rajdavies
+foreignAliases:
+- name: jx-community
+  org: jenkins-x
