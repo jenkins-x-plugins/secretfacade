@@ -2,13 +2,13 @@ package awssecretsmanager
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
-	"github.com/pkg/errors"
 )
 
 func NewAwsSecretManager(session *session.Session) secretstore.Interface {
@@ -22,13 +22,13 @@ type awsSecretsManager struct {
 func (a awsSecretsManager) GetSecret(location, secretName, propertyName string) (string, error) {
 	secret, err := getExistingSecret(a.session, location, secretName)
 	if err != nil {
-		return "", errors.Wrap(err, "error retrieving existing secret for aws secret manager: ")
+		return "", fmt.Errorf("error retrieving existing secret for aws secret manager: : %w", err)
 	}
 
 	if propertyName != "" {
 		secretString, err := getSecretProperty(secret, propertyName)
 		if err != nil {
-			return "", errors.Wrapf(err, "error retrieving secret property from secret %s returned from AWS secrets manager: ", secretName)
+			return "", fmt.Errorf("error retrieving secret property from secret %s returned from AWS secrets manager: : %w", secretName, err)
 		}
 		return secretString, nil
 	}
@@ -39,7 +39,7 @@ func (a awsSecretsManager) GetSecret(location, secretName, propertyName string) 
 func getSecretProperty(s *secretsmanager.GetSecretValueOutput, propertyName string) (string, error) {
 	m, err := getSecretPropertyMap(s.SecretString)
 	if err != nil {
-		return "", errors.Wrapf(err, "error reading property %s from secret JSON object", propertyName)
+		return "", fmt.Errorf("error reading property %s from secret JSON object: %w", propertyName, err)
 	}
 	return m[propertyName], nil
 }
@@ -50,7 +50,7 @@ func (a awsSecretsManager) SetSecret(location, secretName string, secretValue *s
 	if err != nil {
 		// Don't return if secret already exists.
 		if err.(awserr.Error).Code() != secretsmanager.ErrCodeResourceExistsException {
-			return errors.Wrap(err, "error creating new secret for aws secret manager: ")
+			return fmt.Errorf("error creating new secret for aws secret manager: : %w", err)
 		}
 	}
 
@@ -58,7 +58,7 @@ func (a awsSecretsManager) SetSecret(location, secretName string, secretValue *s
 	// Get, Merge and Update
 	secret, err := getExistingSecret(a.session, location, secretName)
 	if err != nil {
-		return errors.Wrap(err, "error retreiving existing secret for aws secret manager: ")
+		return fmt.Errorf("error retreiving existing secret for aws secret manager: : %w", err)
 	}
 	var existingSecretProps map[string]string
 	// FIXME: If secretValue is Simple, AND then secret.SecretString is Simple.
@@ -66,13 +66,13 @@ func (a awsSecretsManager) SetSecret(location, secretName string, secretValue *s
 	if secretValue.Value == "" && secretValue.PropertyValues != nil {
 		existingSecretProps, err = getSecretPropertyMap(secret.SecretString)
 		if err != nil {
-			return errors.Wrap(err, "error parsing existing secret: ")
+			return fmt.Errorf("error parsing existing secret: : %w", err)
 		}
 	}
 
 	err = updateSecret(a.session, secret, secretValue.MergeExistingSecret(existingSecretProps), location)
 	if err != nil {
-		return errors.Wrap(err, "error updating existing secret for aws secret manager: ")
+		return fmt.Errorf("error updating existing secret for aws secret manager: : %w", err)
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func updateSecret(session *session.Session, secret *secretsmanager.GetSecretValu
 	svc := secretsmanager.New(session, aws.NewConfig().WithRegion(location))
 	_, err = svc.PutSecretValue(input)
 	if err != nil {
-		return errors.Wrap(err, "error updating existing secret: ")
+		return fmt.Errorf("error updating existing secret: : %w", err)
 	}
 	return nil
 }
@@ -120,7 +120,7 @@ func getSecretPropertyMap(value *string) (map[string]string, error) {
 	m := make(map[string]string)
 	err := json.Unmarshal([]byte(*value), &m)
 	if err != nil {
-		return nil, errors.Wrap(err, "error unmarshalling AWS secrets manager secret payload in to map[string]string")
+		return nil, fmt.Errorf("error unmarshalling AWS secrets manager secret payload in to map[string]string: %w", err)
 	}
 	return m, nil
 }

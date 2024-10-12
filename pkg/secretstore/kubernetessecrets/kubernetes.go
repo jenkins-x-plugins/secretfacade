@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
-	"github.com/pkg/errors"
+
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +29,7 @@ type kubernetesSecretManager struct {
 func (k kubernetesSecretManager) GetSecret(namespace, secretName, secretKey string) (string, error) {
 	secret, err := k.kubeClient.CoreV1().Secrets(namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to get secret %s from namespace %s", secretName, namespace)
+		return "", fmt.Errorf("failed to get secret %s from namespace %s: %w", secretName, namespace, err)
 	}
 	secretData, ok := secret.Data[secretKey]
 	if ok {
@@ -48,7 +48,7 @@ func (k kubernetesSecretManager) SetSecret(namespace, secretName string, secretV
 	secret, err := secretInterface.Get(context.TODO(), secretName, metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return errors.Wrapf(err, "failed to ")
+			return fmt.Errorf("failed to : %w", err)
 		}
 		create = true
 		secret = &corev1.Secret{
@@ -92,12 +92,12 @@ func (k kubernetesSecretManager) SetSecret(namespace, secretName string, secretV
 	if create {
 		_, err = secretInterface.Create(context.TODO(), secret, metav1.CreateOptions{})
 		if err != nil {
-			return errors.Wrapf(err, "failed to create Secret %s in namespace %s", secretName, namespace)
+			return fmt.Errorf("failed to create Secret %s in namespace %s: %w", secretName, namespace, err)
 		}
 	} else {
 		_, err = secretInterface.Update(context.TODO(), secret, metav1.UpdateOptions{})
 		if err != nil {
-			return errors.Wrapf(err, "failed to update Secret %s in namespace %s", secretName, namespace)
+			return fmt.Errorf("failed to update Secret %s in namespace %s: %w", secretName, namespace, err)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (k kubernetesSecretManager) SetSecret(namespace, secretName string, secretV
 			for _, tons := range nsList {
 				err = copySecretToNamespace(k.kubeClient, tons, secret)
 				if err != nil {
-					return errors.Wrapf(err, "failed to replicate Secret for local backend")
+					return fmt.Errorf("failed to replicate Secret for local backend: %w", err)
 				}
 			}
 		}
@@ -127,7 +127,7 @@ func copySecretToNamespace(kubeClient kubernetes.Interface, ns string, fromSecre
 	create := false
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return errors.Wrapf(err, "failed to ")
+			return fmt.Errorf("failed to : %w", err)
 		}
 		create = true
 		secret = &corev1.Secret{
@@ -170,13 +170,13 @@ func copySecretToNamespace(kubeClient kubernetes.Interface, ns string, fromSecre
 	if create {
 		_, err = secretInterface.Create(context.TODO(), secret, metav1.CreateOptions{})
 		if err != nil {
-			return errors.Wrapf(err, "failed to create Secret %s in namespace %s", name, ns)
+			return fmt.Errorf("failed to create Secret %s in namespace %s: %w", name, ns, err)
 		}
 		return nil
 	}
 	_, err = secretInterface.Update(context.TODO(), secret, metav1.UpdateOptions{})
 	if err != nil {
-		return errors.Wrapf(err, "failed to update Secret %s in namespace %s", name, ns)
+		return fmt.Errorf("failed to update Secret %s in namespace %s: %w", name, ns, err)
 	}
 	return nil
 }

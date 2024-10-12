@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jenkins-x-plugins/secretfacade/pkg/iam/azureiam"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore/azuresecrets"
 	"github.com/stretchr/testify/assert"
@@ -17,11 +16,9 @@ func TestAzureKey(t *testing.T) {
 		t.SkipNow()
 		return
 	}
-	creds, err := azureiam.NewEnvironmentCredentials()
-	assert.NoError(t, err)
-	secretMgr := azuresecrets.NewAzureKeyVaultSecretManager(creds)
+	secretMgr := azuresecrets.NewAzureKeyVaultSecretManager()
 
-	err = secretMgr.SetSecret(keyVaultName, "testsecret", &secretstore.SecretValue{
+	err := secretMgr.SetSecret(keyVaultName, "testsecret", &secretstore.SecretValue{
 		PropertyValues: map[string]string{
 			"username": "thisisausername",
 			"password": "thisisapassword",
