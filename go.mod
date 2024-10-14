@@ -1,6 +1,8 @@
 module github.com/jenkins-x-plugins/secretfacade
 
-go 1.23.2
+go 1.23
+
+toolchain go1.23.2
 
 require (
 	cloud.google.com/go/secretmanager v1.14.1
