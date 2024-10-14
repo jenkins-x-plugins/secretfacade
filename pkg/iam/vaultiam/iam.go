@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/vault/api"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
-	"github.com/pkg/errors"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -41,7 +41,7 @@ func NewEnvironmentCreds() (VaultCreds, error) {
 func NewExternalSecretCreds(client *api.Client, kubeClient kubernetes.Interface) (VaultCreds, error) {
 	token, err := getTokenForExternalVault(client, kubeClient)
 	if err != nil {
-		return VaultCreds{}, errors.Wrap(err, "error getting client token for external vault")
+		return VaultCreds{}, fmt.Errorf("error getting client token for external vault: %w", err)
 	}
 
 	caCertPath := os.Getenv("VAULT_CACERT")
@@ -67,7 +67,7 @@ func getTokenForExternalVault(client *api.Client, kubeClient kubernetes.Interfac
 
 	secrets, err := kubeClient.CoreV1().Secrets(secretNamespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		return "", errors.Wrap(err, "error listing secrets")
+		return "", fmt.Errorf("error listing secrets: %w", err)
 	}
 
 	if len(secrets.Items) == 0 {
@@ -89,7 +89,7 @@ func getTokenForExternalVault(client *api.Client, kubeClient kubernetes.Interfac
 
 	secret, err := kubeClient.CoreV1().Secrets(secretNamespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 	if err != nil {
-		return "", errors.Wrapf(err, "error getting secret %s", secretName)
+		return "", fmt.Errorf("error getting secret %s: %w", secretName, err)
 	}
 
 	if secret.Data == nil {
@@ -109,7 +109,7 @@ func getTokenForExternalVault(client *api.Client, kubeClient kubernetes.Interfac
 	// log in to Vault's Kubernetes auth method
 	resp, err := client.Logical().Write("auth/"+vaultMountPoint+"/login", params)
 	if err != nil {
-		return "", errors.Wrapf(err, "unable to log in with Kubernetes auth at mount point %s using role %s", vaultMountPoint, vaultRole)
+		return "", fmt.Errorf("unable to log in with Kubernetes auth at mount point %s using role %s: %w", vaultMountPoint, vaultRole, err)
 	}
 	if resp == nil || resp.Auth == nil || resp.Auth.ClientToken == "" {
 		return "", fmt.Errorf("login response did not return client token")

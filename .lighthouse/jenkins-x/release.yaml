@@ -20,7 +20,10 @@ spec:
               name: ""
               resources: {}
             - name: next-version
-              resources: {}
+              resources:
+                requests:
+                  cpu: 1400m
+                  memory: 1400Mi
             - name: jx-variables
             - name: build-make-build
               resources: {}

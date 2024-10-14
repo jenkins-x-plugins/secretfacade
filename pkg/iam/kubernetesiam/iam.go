@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -14,11 +13,11 @@ import (
 func InClusterClient() (kubernetes.Interface, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting in cluster config for k8s")
+		return nil, fmt.Errorf("error getting in cluster config for k8s: %w", err)
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating clientset from in cluster config for k8s")
+		return nil, fmt.Errorf("error creating clientset from in cluster config for k8s: %w", err)
 	}
 	return clientset, nil
 }
@@ -28,12 +27,12 @@ func OutOfClusterClient() (kubernetes.Interface, error) {
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting config for out of cluster k8s")
+		return nil, fmt.Errorf("error getting config for out of cluster k8s: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating clientset for out of cluster k8s")
+		return nil, fmt.Errorf("error creating clientset for out of cluster k8s: %w", err)
 	}
 	return clientset, nil
 }
