@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/iam/azureiam"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
-	"net/url"
 )
 
 func NewAzureKeyVaultSecretManager() secretstore.Interface {
