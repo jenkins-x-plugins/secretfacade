@@ -29,7 +29,7 @@ func (smf SecretManagerFactory) NewSecretManager(storeType secretstore.Type) (se
 		if err != nil {
 			return nil, fmt.Errorf("error getting Google creds when attempting to create secret manager via factory: %w", err)
 		}
-		return gcpsecretsmanager.NewGcpSecretsManager(*creds), nil
+		return gcpsecretsmanager.NewGcpSecretsManager(creds), nil
 	case secretstore.SecretStoreTypeKubernetes:
 		client, err := kubernetesiam.GetClient()
 		if err != nil {

@@ -17,12 +17,12 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
-func NewGcpSecretsManager(creds google.Credentials) secretstore.Interface {
+func NewGcpSecretsManager(creds *google.Credentials) secretstore.Interface {
 	return &gcpSecretsManager{creds}
 }
 
 type gcpSecretsManager struct {
-	creds google.Credentials
+	creds *google.Credentials
 }
 
 func (g *gcpSecretsManager) SetSecret(projectID, secretName string, secretValue *secretstore.SecretValue) error {
