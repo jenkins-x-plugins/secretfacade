@@ -9,9 +9,9 @@ import (
 	"github.com/jenkins-x-plugins/secretfacade/pkg/iam/gcpiam"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
 
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
