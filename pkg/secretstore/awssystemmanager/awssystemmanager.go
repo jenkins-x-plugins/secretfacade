@@ -1,12 +1,13 @@
 package awssystemmanager
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
-	"github.com/pkg/errors"
 )
 
 func NewAwsSystemManager(session *session.Session) secretstore.Interface {
@@ -25,7 +26,7 @@ func (a awsSystemManager) GetSecret(location, secretName, _ string) (string, err
 	mgr.Config.Region = &location
 	result, err := mgr.GetParameter(input)
 	if err != nil {
-		return "", errors.Wrap(err, "error retrieving secret from aws parameter store")
+		return "", fmt.Errorf("error retrieving secret from aws parameter store: %w", err)
 	}
 	return result.String(), nil
 }
@@ -42,9 +43,9 @@ func (a awsSystemManager) SetSecret(location, secretName string, secretValue *se
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == ssm.ErrCodeParameterAlreadyExists {
-				return errors.Wrap(err, "Secret Already Exists")
+				return fmt.Errorf("Secret Already Exists: %w", err)
 			}
-			return errors.Wrap(err, "error setting secret for aws parameter store")
+			return fmt.Errorf("error setting secret for aws parameter store: %w", err)
 		}
 	}
 	return nil

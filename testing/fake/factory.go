@@ -1,6 +1,8 @@
 package fake
 
-import "github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
+import (
+	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
+)
 
 type SecretManagerFactory struct {
 	secretStore *SecretStore
