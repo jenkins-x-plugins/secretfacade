@@ -1,26 +1,27 @@
 package awssecretsmanager
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
 )
 
-func NewAwsSecretManager(session *session.Session) secretstore.Interface {
-	return awsSecretsManager{session}
+func NewAwsSecretManager(cfg *aws.Config) secretstore.Interface {
+	return awsSecretsManager{cfg}
 }
 
 type awsSecretsManager struct {
-	session *session.Session
+	cfg *aws.Config
 }
 
 func (a awsSecretsManager) GetSecret(location, secretName, propertyName string) (string, error) {
-	secret, err := getExistingSecret(a.session, location, secretName)
+	secret, err := getExistingSecret(a.cfg, location, secretName)
 	if err != nil {
 		return "", fmt.Errorf("error retrieving existing secret for aws secret manager: : %w", err)
 	}
@@ -46,17 +47,18 @@ func getSecretProperty(s *secretsmanager.GetSecretValueOutput, propertyName stri
 
 func (a awsSecretsManager) SetSecret(location, secretName string, secretValue *secretstore.SecretValue) (err error) {
 	// CreateSecret
-	err = createSecret(a.session, location, secretName, *secretValue)
+	err = createSecret(a.cfg, location, secretName, *secretValue)
 	if err != nil {
 		// Don't return if secret already exists.
-		if err.(awserr.Error).Code() != secretsmanager.ErrCodeResourceExistsException {
+		var resourceExists *types.ResourceExistsException
+		if !errors.As(err, &resourceExists) {
 			return fmt.Errorf("error creating new secret for aws secret manager: : %w", err)
 		}
 	}
 
 	// GetSecretValue + PutSecretValue/UpdateSecret
 	// Get, Merge and Update
-	secret, err := getExistingSecret(a.session, location, secretName)
+	secret, err := getExistingSecret(a.cfg, location, secretName)
 	if err != nil {
 		return fmt.Errorf("error retreiving existing secret for aws secret manager: : %w", err)
 	}
@@ -70,7 +72,7 @@ func (a awsSecretsManager) SetSecret(location, secretName string, secretValue *s
 		}
 	}
 
-	err = updateSecret(a.session, secret, secretValue.MergeExistingSecret(existingSecretProps), location)
+	err = updateSecret(a.cfg, secret, secretValue.MergeExistingSecret(existingSecretProps), location)
 	if err != nil {
 		return fmt.Errorf("error updating existing secret for aws secret manager: : %w", err)
 	}
@@ -78,38 +80,44 @@ func (a awsSecretsManager) SetSecret(location, secretName string, secretValue *s
 	return nil
 }
 
-func updateSecret(session *session.Session, secret *secretsmanager.GetSecretValueOutput, newValue, location string) (err error) {
+func updateSecret(cfg *aws.Config, secret *secretsmanager.GetSecretValueOutput, newValue, location string) (err error) {
 	input := &secretsmanager.PutSecretValueInput{
 		SecretId:     secret.ARN,
 		SecretString: aws.String(newValue),
 	}
-	svc := secretsmanager.New(session, aws.NewConfig().WithRegion(location))
-	_, err = svc.PutSecretValue(input)
+	svc := secretsmanager.NewFromConfig(*cfg, func(o *secretsmanager.Options) {
+		o.Region = location
+	})
+	_, err = svc.PutSecretValue(context.TODO(), input)
 	if err != nil {
 		return fmt.Errorf("error updating existing secret: : %w", err)
 	}
 	return nil
 }
 
-func getExistingSecret(session *session.Session, location, secretName string) (secret *secretsmanager.GetSecretValueOutput, err error) {
+func getExistingSecret(cfg *aws.Config, location, secretName string) (secret *secretsmanager.GetSecretValueOutput, err error) {
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId: &secretName,
 	}
-	svc := secretsmanager.New(session, aws.NewConfig().WithRegion(location))
-	secret, err = svc.GetSecretValue(input)
+	svc := secretsmanager.NewFromConfig(*cfg, func(o *secretsmanager.Options) {
+		o.Region = location
+	})
+	secret, err = svc.GetSecretValue(context.TODO(), input)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func createSecret(session *session.Session, location, secretName string, secretValue secretstore.SecretValue) (err error) {
+func createSecret(cfg *aws.Config, location, secretName string, secretValue secretstore.SecretValue) (err error) {
 	input := &secretsmanager.CreateSecretInput{
 		Name:         &secretName,
 		SecretString: aws.String(secretValue.ToString()),
 	}
-	svc := secretsmanager.New(session, aws.NewConfig().WithRegion(location))
-	_, err = svc.CreateSecret(input)
+	svc := secretsmanager.NewFromConfig(*cfg, func(o *secretsmanager.Options) {
+		o.Region = location
+	})
+	_, err = svc.CreateSecret(context.TODO(), input)
 	if err != nil {
 		return err
 	}

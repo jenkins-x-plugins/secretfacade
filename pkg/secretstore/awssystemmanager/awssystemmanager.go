@@ -1,34 +1,36 @@
 package awssystemmanager
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/secretstore"
 )
 
-func NewAwsSystemManager(session *session.Session) secretstore.Interface {
-	return awsSystemManager{session}
+func NewAwsSystemManager(cfg *aws.Config) secretstore.Interface {
+	return awsSystemManager{cfg}
 }
 
 type awsSystemManager struct {
-	session *session.Session
+	cfg *aws.Config
 }
 
 func (a awsSystemManager) GetSecret(location, secretName, _ string) (string, error) {
 	input := &ssm.GetParameterInput{
 		Name: aws.String(secretName),
 	}
-	mgr := ssm.New(a.session, aws.NewConfig().WithRegion(location))
-	mgr.Config.Region = &location
-	result, err := mgr.GetParameter(input)
+	mgr := ssm.NewFromConfig(*a.cfg, func(o *ssm.Options) {
+		o.Region = location
+	})
+	result, err := mgr.GetParameter(context.TODO(), input)
 	if err != nil {
 		return "", fmt.Errorf("error retrieving secret from aws parameter store: %w", err)
 	}
-	return result.String(), nil
+	return *result.Parameter.Value, nil
 }
 
 func (a awsSystemManager) SetSecret(location, secretName string, secretValue *secretstore.SecretValue) error {
@@ -36,17 +38,17 @@ func (a awsSystemManager) SetSecret(location, secretName string, secretValue *se
 		Name:  &secretName,
 		Value: &secretValue.Value,
 	}
-	mgr := ssm.New(a.session, aws.NewConfig().WithRegion(location))
-	mgr.Config.Region = &location
+	mgr := ssm.NewFromConfig(*a.cfg, func(o *ssm.Options) {
+		o.Region = location
+	})
 
-	_, err := mgr.PutParameter(input)
+	_, err := mgr.PutParameter(context.TODO(), input)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == ssm.ErrCodeParameterAlreadyExists {
-				return fmt.Errorf("Secret Already Exists: %w", err)
-			}
-			return fmt.Errorf("error setting secret for aws parameter store: %w", err)
+		var alreadyExists *types.AlreadyExistsException
+		if errors.As(err, &alreadyExists) {
+			return fmt.Errorf("secret already exists: %w", err)
 		}
+		return fmt.Errorf("error setting secret for aws parameter store: %w", err)
 	}
 	return nil
 }
