@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws/session"
+	"context"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/hashicorp/vault/api"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/iam/gcpiam"
 	"github.com/jenkins-x-plugins/secretfacade/pkg/iam/kubernetesiam"
@@ -73,17 +74,17 @@ func (smf SecretManagerFactory) NewSecretManager(storeType secretstore.Type) (se
 		client.SetToken(creds.Token)
 		return vaultsecrets.NewVaultSecretManager(client)
 	case secretstore.SecretStoreTypeAwsASM:
-		sess, err := session.NewSession()
+		cfg, err := config.LoadDefaultConfig(context.TODO())
 		if err != nil {
 			return nil, fmt.Errorf("error getting AWS creds when attempting to create secret manager via factory: %w", err)
 		}
-		return awssecretsmanager.NewAwsSecretManager(sess), nil
+		return awssecretsmanager.NewAwsSecretManager(&cfg), nil
 	case secretstore.SecretStoreTypeAwsSSM:
-		sess, err := session.NewSession()
+		cfg, err := config.LoadDefaultConfig(context.TODO())
 		if err != nil {
 			return nil, fmt.Errorf("error getting AWS creds when attempting to create secret manager via factory: %w", err)
 		}
-		return awssystemmanager.NewAwsSystemManager(sess), nil
+		return awssystemmanager.NewAwsSystemManager(&cfg), nil
 	}
 	return nil, fmt.Errorf("unable to create manager for storeType %s", string(storeType))
 }
