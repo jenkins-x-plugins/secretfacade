@@ -140,10 +140,10 @@ github.com/hashicorp/hcl v1.0.1-vault-7 h1:ag5OxFVy3QYTFTJODRzTKVZ6xvdfLLCA1cy/Y
 github.com/hashicorp/hcl v1.0.1-vault-7/go.mod h1:XYhtn6ijBSAj6n4YqAaf7RBPS4I06AItNorpy+MoQNM=
 github.com/hashicorp/vault/api v1.23.0 h1:gXgluBsSECfRWTSW9niY2jwg2e9mMJc4WoHNv4g3h6A=
 github.com/hashicorp/vault/api v1.23.0/go.mod h1:zransKiB9ftp+kgY8ydjnvCU7Wk8i9L0DYWpXeMj9ko=
-github.com/jenkins-x/jx-logging/v3 v3.1.4 h1:7MJXmai8ncU2gDhuMrKzTNMp/4vAVDE203bSXFrriYk=
-github.com/jenkins-x/jx-logging/v3 v3.1.4/go.mod h1:6RFiAYloZ9X/L6RRKGrQvqJxzxIbwTrSlwOfNEsPx+Q=
-github.com/jenkins-x/logrus-stackdriver-formatter v0.2.8 h1:71qqOqutjjNFIg3LdQaeoed1/u99ulKUQRzl82j6MTc=
-github.com/jenkins-x/logrus-stackdriver-formatter v0.2.8/go.mod h1:p3MydyTFEaIvhgtuZ/OFGxRpzUT1eTKoaD5CI7E7qOg=
+github.com/jenkins-x/jx-logging/v3 v3.1.6 h1:3X5BJiRe1jF3eN1jtV3356DNbMN5wrwnMfwfS/lIpRo=
+github.com/jenkins-x/jx-logging/v3 v3.1.6/go.mod h1:vAynkJb/eJMLnAOHd2sBOKKeo9mCpNyauOivZxv1xaY=
+github.com/jenkins-x/logrus-stackdriver-formatter v0.2.9 h1:2p+iS+xNLdzIWHtZYi/nh/BH2Z7TbWgUfpHY+KMhcVg=
+github.com/jenkins-x/logrus-stackdriver-formatter v0.2.9/go.mod h1:basV0MHPAnDqTIQ05bmt8GBauDVTuvcGBKv/Dfyuee4=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=

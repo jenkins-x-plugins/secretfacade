@@ -1,8 +1,6 @@
 module github.com/jenkins-x-plugins/secretfacade
 
-go 1.26.0
-
-toolchain go1.26.3
+go 1.26.3
 
 require (
 	cloud.google.com/go/secretmanager v1.20.0
@@ -12,7 +10,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.4.0
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/hashicorp/vault/api v1.23.0
-	github.com/jenkins-x/jx-logging/v3 v3.1.4
+	github.com/jenkins-x/jx-logging/v3 v3.1.6
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/oauth2 v0.36.0
@@ -71,7 +69,7 @@ require (
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
-	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.8 // indirect
+	github.com/jenkins-x/logrus-stackdriver-formatter v0.2.9 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
